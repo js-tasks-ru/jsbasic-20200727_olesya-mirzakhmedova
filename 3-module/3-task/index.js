@@ -3,7 +3,7 @@
  * @returns {string}
  */
 function camelize(str) {
-  return camelizedString = str
+  return str
     .split('-')
     .map((word, index) => {
       if (index > 0) {
