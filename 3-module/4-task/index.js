@@ -6,7 +6,8 @@
  */
 function showSalary(users, age) {
   let resultString = '';
-  users.map((user, index) => {
+
+  users.forEach((user, index) => {
     if (user.age <= age) {
       if (index !== 0) {
         resultString += '\n';
