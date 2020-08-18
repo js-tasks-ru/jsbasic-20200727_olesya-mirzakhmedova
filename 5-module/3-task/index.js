@@ -20,7 +20,8 @@ function initCarousel() {
 
   function arrowClick(direction) {
     let activeSlideIndex = slidesArray.findIndex(item => item.classList.contains('active'));
-    
+    let nextSlideIndex = activeSlideIndex - direction;
+
     let currentOffset = carouselBody.style.transform.match(/(-?[0-9\.]+)/g);
     if (currentOffset) {
       currentOffset = +currentOffset[0];
@@ -33,11 +34,11 @@ function initCarousel() {
     carouselBody.style.transform = `translateX(${newOffset}px)`;
 
     slidesArray[activeSlideIndex].classList.remove('active');
-    slidesArray[activeSlideIndex - direction].classList.add('active');
+    slidesArray[nextSlideIndex].classList.add('active');
     
-    if(activeSlideIndex - direction === slidesArray.length - 1) {
+    if(nextSlideIndex === slidesArray.length - 1) {
       rightArrow.style.display = 'none';
-    } else if (activeSlideIndex - direction === 0) {
+    } else if (nextSlideIndex === 0) {
       leftArrow.style.display = 'none';
     } else {
       rightArrow.style.display = '';
