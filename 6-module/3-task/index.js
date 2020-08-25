@@ -15,7 +15,6 @@ export default class Carousel {
       this.arrowClick(-1);
     });
 
-    this._elem.addEventListener('product-add', (event) => {});
     this._elem.addEventListener('click', (event) => this.productAdd(event));
   }
 
@@ -23,24 +22,26 @@ export default class Carousel {
     let carouselContainer = document.createElement('div');
     carouselContainer.classList.add('carousel');
 
-    let rightArrow = document.createElement('div');
-    rightArrow.className = 'carousel__arrow carousel__arrow_right';
-    rightArrow.innerHTML = '<img src="/assets/images/icons/angle-icon.svg" alt="icon">';
-    this._rightArrow = rightArrow;
+    let carouselHtml = `
+      <div class="carousel__arrow carousel__arrow_right">
+        <img src="/assets/images/icons/angle-icon.svg" alt="icon">
+      </div>
+      <div class="carousel__arrow carousel__arrow_left">
+        <img src="/assets/images/icons/angle-left-icon.svg" alt="icon">
+      </div>
 
-    let leftArrow = document.createElement('div');
-    leftArrow.className = 'carousel__arrow carousel__arrow_left';
-    leftArrow.innerHTML = '<img src="/assets/images/icons/angle-left-icon.svg" alt="icon">';
-    this._leftArrow = leftArrow;
+      <div class="carousel__inner">
+      </div>
+    `;
+
+    carouselContainer.insertAdjacentHTML('afterbegin', carouselHtml);
+
+    this._rightArrow = carouselContainer.querySelector('.carousel__arrow_right');
+    this._leftArrow = carouselContainer.querySelector('.carousel__arrow_left');
     this._leftArrow.style.display = 'none';
+    
+    let carouselInnerContainer = carouselContainer.querySelector('.carousel__inner');
 
-    carouselContainer.append(rightArrow);
-    carouselContainer.append(leftArrow);
-    
-    let carouselInnerContainer = document.createElement('div');
-    carouselInnerContainer.classList.add('carousel__inner');
-    carouselContainer.append(carouselInnerContainer);
-    
     let slidesHtml = slides.map(item => {
       let slide = `
         <div class="carousel__slide" data-id="${item.id}">
