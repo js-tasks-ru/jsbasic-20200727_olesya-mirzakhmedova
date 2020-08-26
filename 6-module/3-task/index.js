@@ -74,15 +74,9 @@ export default class Carousel {
     let activeSlideIndex = this._slidesArray.findIndex(item => item.classList.contains('active'));
     let nextSlideIndex = activeSlideIndex - direction;
 
-    let currentOffset = this._carouselBody.style.transform.match(/(-?[0-9\.]+)/g);
-    if (currentOffset) {
-      currentOffset = +currentOffset[0];
-    } else {
-      currentOffset = 0;
-    }
+    let slideWidth = this._slidesArray[0].offsetWidth;
+    let newOffset = nextSlideIndex * slideWidth * (-1);
 
-    let newOffset = currentOffset + this._slidesArray[0].offsetWidth * direction;
-  
     this._carouselBody.style.transform = `translateX(${newOffset}px)`;
 
     this._slidesArray[activeSlideIndex].classList.remove('active');
