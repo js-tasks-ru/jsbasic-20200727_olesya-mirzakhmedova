@@ -6,7 +6,7 @@ export default class Carousel {
   }
 
   constructor(slides) {
-    this.createCarousel(slides);
+    this.renderCarousel(slides);
     this._leftArrow.addEventListener('click', (event) => this.arrowClick(1));
   
     this._rightArrow.addEventListener('click', (event) => this.arrowClick(-1));
@@ -14,7 +14,7 @@ export default class Carousel {
     this._elem.addEventListener('click', (event) => this.productAdd(event));
   }
 
-  createCarousel(slides) {
+  renderCarousel(slides) {
     let carouselContainer = document.createElement('div');
     carouselContainer.classList.add('carousel');
 
