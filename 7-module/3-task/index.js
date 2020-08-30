@@ -7,9 +7,6 @@ export default class StepSlider {
     this._steps = steps;
     this._value = value;
     this.renderSlider(this._steps, this._value);
-    setTimeout(() => {
-      this.initSlider();  
-    }, 50);
     
     this._sliderElem.addEventListener('click', event => this.sliderClick(event));
   }
@@ -41,17 +38,13 @@ export default class StepSlider {
       }
       sliderSteps.append(stepItem);
     }
-  }
 
-  initSlider() {
     // число у бегунка, соответствующее выбранному "сегменту"
     this._sliderValue = this._sliderElem.querySelector('.slider__value');
     this._sliderValue.textContent = this._value;
 
-    this._sliderWidth = this._sliderElem.clientWidth; // ширина блока слайдера
-    this._sliderStepWidth = this._sliderWidth / (this._steps - 1); // ширина сегмента
-
-    let shiftPercents = this._value * this._sliderStepWidth * 100 / this._sliderWidth;
+    // определяем, сколько надо закрасить от шкалы при инициализации слайдера
+    let shiftPercents = this._value * 100 / (this._steps - 1);
 
     this._thumb = this._sliderElem.querySelector('.slider__thumb'); // бегунок
     this._progress = this._sliderElem.querySelector('.slider__progress'); // прогресс-бар
@@ -63,6 +56,9 @@ export default class StepSlider {
   sliderClick(event) {
     let sliderRect = event.target.getBoundingClientRect();
     let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
+
+    this._sliderWidth = this._sliderElem.clientWidth; // ширина блока слайдера
+    this._sliderStepWidth = this._sliderWidth / (this._steps - 1); // ширина сегмента
 
     // определяем номер выбранного сегмента, меняем число у бегунка на соответствующее
     let stepNumber = Math.round(x / this._sliderStepWidth);
