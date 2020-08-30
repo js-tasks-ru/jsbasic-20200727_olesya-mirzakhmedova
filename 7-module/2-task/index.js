@@ -3,8 +3,8 @@ import createElement from '../../assets/lib/create-element.js';
 export default class Modal {
   constructor() {
     this.renderModal();
-    this._modalElem.addEventListener('click', event => this.close(event));
-    document.addEventListener('keydown', event => this.close(event));
+    this._modalElem.addEventListener('click', event => this.closeOnClick(event));
+    document.addEventListener('keydown', event => this.closeOnEscape(event));
   }
 
   renderModal() {
@@ -46,10 +46,20 @@ export default class Modal {
     this._modalBody.insertAdjacentElement('afterbegin', node);
   }
 
-  close(event) {
-    if(!event || event.code === 'Escape' || event.target.closest('.modal__close')) {
-      document.body.classList.remove('is-modal-open');
-      this._modalElem.remove();
+  closeOnClick(event) {
+    if (event.target.closest('.modal__close')) {
+      this.close();
     }
+  }
+
+  closeOnEscape(event) {
+    if(event.code === 'Escape') {
+      this.close();
+    }
+  }
+
+  close() {
+    document.body.classList.remove('is-modal-open');
+    this._modalElem.remove();
   }
 }
