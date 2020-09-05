@@ -8,10 +8,61 @@ export default class StepSlider {
     this._value = value;
     this.renderSlider(this._steps, this._value);
 
+    //this._thumb.addEventListener('pointerdown', event => this.sliderDragStart(event));
     this._thumb.ondragstart = () => false;
-    this._sliderElem.addEventListener('pointerdown', event => this.sliderDragStart(event));
-    this._sliderElem.addEventListener('pointermove', event => this.sliderDragMove(event));
-    this._sliderElem.addEventListener('pointerup', event => this.sliderDragEnd(event));
+
+    this._thumb.onpointerdown = (event) => {
+      this._sliderElem.classList.add('slider_dragging');
+
+      this._sliderElem.addEventListener('pointermove', sliderDragMove.bind(this));
+
+      function sliderDragMove(event) {
+        event.preventDefault();
+    
+        let sliderRect = this._sliderElem.getBoundingClientRect();
+        let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
+    
+        this._sliderWidth = this._sliderElem.clientWidth; // ширина блока слайдера
+        this._sliderStepWidth = this._sliderWidth / (this._steps - 1); // ширина сегмента
+    
+        // определяем номер выбранного сегмента, меняем число у бегунка на соответствующее
+        this._value = Math.round(x / this._sliderStepWidth);
+        this._sliderValue.textContent = this._value;
+    
+        // удаляем активный класс у предыдущего шага, делаем активным выбранный
+        document.querySelector('.slider__step-active').classList.remove('slider__step-active');
+        let spans = document.querySelectorAll('.slider__steps span');
+        let spansArray = Array.from(spans);
+        spansArray[this._value].classList.add('slider__step-active');
+    
+        // высчитываем на сколько процентов должен быть закрашен слайдер
+        // закрашиваем, смещаем бегунок
+        let shiftPercents = this._value * this._sliderStepWidth * 100 / this._sliderWidth;
+    
+        this._thumb.style.left = `${shiftPercents}%`;
+        this._progress.style.width = `${shiftPercents}%`;
+    
+        //this._sliderElem.addEventListener('pointerup', event => this.sliderDragEnd(event));
+    
+        
+        this._sliderElem.onpointerup = () => {
+          this._sliderElem.classList.remove('slider_dragging');
+    
+          //debugger;
+          // this._sliderElem.removeEventListener('pointerup', event => this.sliderDragEnd(event));
+          //this._sliderElem.removeEventListener('pointermove', event => this.sliderDragMove(event));
+
+          this._sliderElem.removeEventListener('pointermove', sliderDragMove.bind(this));
+          
+          this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
+            detail: this._value,
+            bubbles: true
+          }));
+    
+          this._sliderElem.onpointerup = null;
+        }
+      }
+    }
   }
 
   renderSlider(steps, value) {
@@ -56,14 +107,23 @@ export default class StepSlider {
     this._progress.style.width = `${shiftPercents}%`;
   }
 
+
+
+  
   sliderDragStart(event) {
     this._sliderElem.classList.add('slider_dragging');
 
-    // this._sliderElem.addEventListener('pointermove', event => this.sliderDragMove(event));
+    this._sliderElem.addEventListener('pointermove', event => this.sliderDragMove(event));
+    
+    // this._sliderElem.onpointermove = () => {
+
+    // }
   }
 
   sliderDragMove(event) {
-    let sliderRect = event.target.getBoundingClientRect();
+    event.preventDefault();
+
+    let sliderRect = this._sliderElem.getBoundingClientRect();
     let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
 
     this._sliderWidth = this._sliderElem.clientWidth; // ширина блока слайдера
@@ -85,13 +145,32 @@ export default class StepSlider {
 
     this._thumb.style.left = `${shiftPercents}%`;
     this._progress.style.width = `${shiftPercents}%`;
+
+    //this._sliderElem.addEventListener('pointerup', event => this.sliderDragEnd(event));
+
+    
+    this._sliderElem.onpointerup = () => {
+      this._sliderElem.classList.remove('slider_dragging');
+
+      // debugger;
+      // this._sliderElem.removeEventListener('pointerup', event => this.sliderDragEnd(event));
+      this._sliderElem.removeEventListener('pointermove', event => this.sliderDragMove(event));
+      
+      this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
+        detail: this._value,
+        bubbles: true
+      }));
+
+      this._sliderElem.onpointerup = null;
+    }
   }
 
   sliderDragEnd(event) {
     this._sliderElem.classList.remove('slider_dragging');
 
+    debugger;
+    this._sliderElem.removeEventListener('pointerup', event => this.sliderDragEnd(event));
     this._sliderElem.removeEventListener('pointermove', event => this.sliderDragMove(event));
-    this._sliderElem.removeEventListener('pointerdown', event => this.sliderDragStart(event));
     
     this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
       detail: this._value,
