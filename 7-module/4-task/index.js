@@ -6,18 +6,17 @@ export default class StepSlider {
   constructor({ steps, value = 0 }) {
     this._steps = steps;
     this._value = value;
+    this._isMoving = false;
     this.renderSlider(this._steps, this._value);
 
-    //this._thumb.addEventListener('pointerdown', event => this.sliderDragStart(event));
     this._thumb.ondragstart = () => false;
 
     this._thumb.onpointerdown = (event) => {
       this._sliderElem.classList.add('slider_dragging');
 
-      this._sliderElem.addEventListener('pointermove', sliderDragMove.bind(this));
-
-      function sliderDragMove(event) {
+      let pointermove = (event) => {
         event.preventDefault();
+        this._isMoving = true;
     
         let sliderRect = this._sliderElem.getBoundingClientRect();
         let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
@@ -25,6 +24,23 @@ export default class StepSlider {
         this._sliderWidth = this._sliderElem.clientWidth; // ширина блока слайдера
         this._sliderStepWidth = this._sliderWidth / (this._steps - 1); // ширина сегмента
     
+        // высчитываем на сколько процентов должен быть закрашен слайдер
+        // закрашиваем, смещаем бегунок
+        let leftRelative = x / this._sliderWidth;
+
+        if (leftRelative < 0) {
+          leftRelative = 0;
+        }
+
+        if (leftRelative > 1) {
+          leftRelative = 0;
+        }
+
+        let shiftPercents = leftRelative * 100;
+    
+        this._thumb.style.left = `${shiftPercents}%`;
+        this._progress.style.width = `${shiftPercents}%`;
+
         // определяем номер выбранного сегмента, меняем число у бегунка на соответствующее
         this._value = Math.round(x / this._sliderStepWidth);
         this._sliderValue.textContent = this._value;
@@ -35,24 +51,10 @@ export default class StepSlider {
         let spansArray = Array.from(spans);
         spansArray[this._value].classList.add('slider__step-active');
     
-        // высчитываем на сколько процентов должен быть закрашен слайдер
-        // закрашиваем, смещаем бегунок
-        let shiftPercents = this._value * this._sliderStepWidth * 100 / this._sliderWidth;
-    
-        this._thumb.style.left = `${shiftPercents}%`;
-        this._progress.style.width = `${shiftPercents}%`;
-    
-        //this._sliderElem.addEventListener('pointerup', event => this.sliderDragEnd(event));
-    
-        
-        this._sliderElem.onpointerup = () => {
+        this._sliderElem.onpointerup = (event) => {
           this._sliderElem.classList.remove('slider_dragging');
     
-          //debugger;
-          // this._sliderElem.removeEventListener('pointerup', event => this.sliderDragEnd(event));
-          //this._sliderElem.removeEventListener('pointermove', event => this.sliderDragMove(event));
-
-          this._sliderElem.removeEventListener('pointermove', sliderDragMove.bind(this));
+          this._sliderElem.removeEventListener('pointermove', pointermove);
           
           this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
             detail: this._value,
@@ -60,9 +62,17 @@ export default class StepSlider {
           }));
     
           this._sliderElem.onpointerup = null;
+
+          setTimeout(() => {
+            this._isMoving = false;
+          }, 0);
         }
-      }
+      };
+
+      this._sliderElem.addEventListener('pointermove', pointermove);
     }
+
+    this._sliderElem.addEventListener('click', event => this.sliderClick(event));
   }
 
   renderSlider(steps, value) {
@@ -107,73 +117,34 @@ export default class StepSlider {
     this._progress.style.width = `${shiftPercents}%`;
   }
 
+  sliderClick(event) {
+    if (this._isMoving) return;
 
-
-  
-  sliderDragStart(event) {
-    this._sliderElem.classList.add('slider_dragging');
-
-    this._sliderElem.addEventListener('pointermove', event => this.sliderDragMove(event));
-    
-    // this._sliderElem.onpointermove = () => {
-
-    // }
-  }
-
-  sliderDragMove(event) {
-    event.preventDefault();
-
-    let sliderRect = this._sliderElem.getBoundingClientRect();
+    let sliderRect = event.target.getBoundingClientRect();
     let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
 
     this._sliderWidth = this._sliderElem.clientWidth; // ширина блока слайдера
     this._sliderStepWidth = this._sliderWidth / (this._steps - 1); // ширина сегмента
 
     // определяем номер выбранного сегмента, меняем число у бегунка на соответствующее
-    this._value = Math.round(x / this._sliderStepWidth);
-    this._sliderValue.textContent = this._value;
+    let stepNumber = Math.round(x / this._sliderStepWidth);
+    this._sliderValue.textContent = stepNumber;
 
     // удаляем активный класс у предыдущего шага, делаем активным выбранный
     document.querySelector('.slider__step-active').classList.remove('slider__step-active');
     let spans = document.querySelectorAll('.slider__steps span');
     let spansArray = Array.from(spans);
-    spansArray[this._value].classList.add('slider__step-active');
+    spansArray[stepNumber].classList.add('slider__step-active');
 
     // высчитываем на сколько процентов должен быть закрашен слайдер
     // закрашиваем, смещаем бегунок
-    let shiftPercents = this._value * this._sliderStepWidth * 100 / this._sliderWidth;
+    let shiftPercents = stepNumber * this._sliderStepWidth * 100 / this._sliderWidth;
 
     this._thumb.style.left = `${shiftPercents}%`;
     this._progress.style.width = `${shiftPercents}%`;
 
-    //this._sliderElem.addEventListener('pointerup', event => this.sliderDragEnd(event));
-
-    
-    this._sliderElem.onpointerup = () => {
-      this._sliderElem.classList.remove('slider_dragging');
-
-      // debugger;
-      // this._sliderElem.removeEventListener('pointerup', event => this.sliderDragEnd(event));
-      this._sliderElem.removeEventListener('pointermove', event => this.sliderDragMove(event));
-      
-      this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
-        detail: this._value,
-        bubbles: true
-      }));
-
-      this._sliderElem.onpointerup = null;
-    }
-  }
-
-  sliderDragEnd(event) {
-    this._sliderElem.classList.remove('slider_dragging');
-
-    debugger;
-    this._sliderElem.removeEventListener('pointerup', event => this.sliderDragEnd(event));
-    this._sliderElem.removeEventListener('pointermove', event => this.sliderDragMove(event));
-    
     this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
-      detail: this._value,
+      detail: stepNumber,
       bubbles: true
     }));
   }
