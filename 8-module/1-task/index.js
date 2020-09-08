@@ -5,6 +5,8 @@ export default class CartIcon {
     this.render();
 
     this.addEventListeners();
+
+    this.initialTopCoordinate;
   }
 
   render() {
@@ -39,6 +41,27 @@ export default class CartIcon {
   }
 
   updatePosition() {
-    // ваш код ...
+    if(!this.initialTopCoordinate) {
+      this.initialTopCoordinate = this.elem.getBoundingClientRect().top + window.pageYOffset;
+    }
+
+    let documentWidth = document.documentElement.clientWidth;
+    if (this.elem.classList.contains('cart-icon_visible') && window.pageYOffset > this.initialTopCoordinate && documentWidth > 767) {
+      let container = document.querySelector('.container');
+
+      let cartRight20 = container.getBoundingClientRect().right + 20;
+      let cartRight10 = documentWidth - this.elem.offsetWidth - 10;
+
+      let cartLeft = Math.min(cartRight20, cartRight10);
+
+      this.elem.style.cssText = `
+        position: fixed;
+        top: 50px;
+        z-index: 1000;
+        left: ${cartLeft}px;
+      `;
+    } else if (window.pageYOffset <= this.initialTopCoordinate || documentWidth <= 767) {
+      this.elem.style.cssText = '';
+    }
   }
 }
