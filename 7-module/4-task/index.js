@@ -17,13 +17,12 @@ export default class StepSlider {
       let pointermove = (event) => {
         event.preventDefault();
         this._isMoving = true;
+
+        this.changeActiveStep(event);
     
         let sliderRect = this._sliderElem.getBoundingClientRect();
         let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
-    
-        this._sliderWidth = this._sliderElem.clientWidth; // ширина блока слайдера
-        this._sliderStepWidth = this._sliderWidth / (this._steps - 1); // ширина сегмента
-    
+  
         // высчитываем на сколько процентов должен быть закрашен слайдер
         // закрашиваем, смещаем бегунок
         let leftRelative = x / this._sliderWidth;
@@ -40,16 +39,6 @@ export default class StepSlider {
     
         this._thumb.style.left = `${shiftPercents}%`;
         this._progress.style.width = `${shiftPercents}%`;
-
-        // определяем номер выбранного сегмента, меняем число у бегунка на соответствующее
-        this._value = Math.round(x / this._sliderStepWidth);
-        this._sliderValue.textContent = this._value;
-    
-        // удаляем активный класс у предыдущего шага, делаем активным выбранный
-        document.querySelector('.slider__step-active').classList.remove('slider__step-active');
-        let spans = document.querySelectorAll('.slider__steps span');
-        let spansArray = Array.from(spans);
-        spansArray[this._value].classList.add('slider__step-active');
     
         this._sliderElem.onpointerup = (event) => {
           this._sliderElem.classList.remove('slider_dragging');
@@ -120,32 +109,36 @@ export default class StepSlider {
   sliderClick(event) {
     if (this._isMoving) return;
 
-    let sliderRect = event.target.getBoundingClientRect();
+    this.changeActiveStep(event);
+
+    // высчитываем на сколько процентов должен быть закрашен слайдер
+    // закрашиваем, смещаем бегунок
+    let shiftPercents = this._value * this._sliderStepWidth * 100 / this._sliderWidth;
+
+    this._thumb.style.left = `${shiftPercents}%`;
+    this._progress.style.width = `${shiftPercents}%`;
+
+    this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
+      detail: this._value,
+      bubbles: true
+    }));
+  }
+
+  changeActiveStep(event) {
+    let sliderRect = this._sliderElem.getBoundingClientRect();
     let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
 
     this._sliderWidth = this._sliderElem.clientWidth; // ширина блока слайдера
     this._sliderStepWidth = this._sliderWidth / (this._steps - 1); // ширина сегмента
 
     // определяем номер выбранного сегмента, меняем число у бегунка на соответствующее
-    let stepNumber = Math.round(x / this._sliderStepWidth);
-    this._sliderValue.textContent = stepNumber;
+    this._value = Math.round(x / this._sliderStepWidth);
+    this._sliderValue.textContent = this._value;
 
     // удаляем активный класс у предыдущего шага, делаем активным выбранный
     document.querySelector('.slider__step-active').classList.remove('slider__step-active');
     let spans = document.querySelectorAll('.slider__steps span');
     let spansArray = Array.from(spans);
-    spansArray[stepNumber].classList.add('slider__step-active');
-
-    // высчитываем на сколько процентов должен быть закрашен слайдер
-    // закрашиваем, смещаем бегунок
-    let shiftPercents = stepNumber * this._sliderStepWidth * 100 / this._sliderWidth;
-
-    this._thumb.style.left = `${shiftPercents}%`;
-    this._progress.style.width = `${shiftPercents}%`;
-
-    this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
-      detail: stepNumber,
-      bubbles: true
-    }));
+    spansArray[this._value].classList.add('slider__step-active');
   }
 }
