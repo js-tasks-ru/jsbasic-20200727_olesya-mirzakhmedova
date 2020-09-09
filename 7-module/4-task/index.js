@@ -10,58 +10,59 @@ export default class StepSlider {
     this.renderSlider(this._steps, this._value);
 
     this._thumb.ondragstart = () => false;
+    this._thumb.addEventListener('pointerdown', this.sliderDragStart);
+    this._sliderElem.addEventListener('click', event => this.sliderClick(event));
+  }
 
-    this._thumb.onpointerdown = (event) => {
-      this._sliderElem.classList.add('slider_dragging');
+  sliderDragStart = () => {
+    this._sliderElem.classList.add('slider_dragging');
 
-      let pointermove = (event) => {
-        event.preventDefault();
-        this._isMoving = true;
+    this._sliderElem.addEventListener('pointermove', this.sliderDragMove);
+  }
 
-        this.changeActiveStep(event);
-    
-        let sliderRect = this._sliderElem.getBoundingClientRect();
-        let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
-  
-        // высчитываем на сколько процентов должен быть закрашен слайдер
-        // закрашиваем, смещаем бегунок
-        let leftRelative = x / this._sliderWidth;
+  sliderDragMove = (event) => {
+    event.preventDefault();
+    this._isMoving = true;
 
-        if (leftRelative < 0) {
-          leftRelative = 0;
-        }
+    this.changeActiveStep(event);
 
-        if (leftRelative > 1) {
-          leftRelative = 0;
-        }
+    let sliderRect = this._sliderElem.getBoundingClientRect();
+    let x = event.clientX - sliderRect.left;  // координата клика относительно блока слайдера
 
-        let shiftPercents = leftRelative * 100;
-    
-        this._thumb.style.left = `${shiftPercents}%`;
-        this._progress.style.width = `${shiftPercents}%`;
-    
-        this._sliderElem.onpointerup = (event) => {
-          this._sliderElem.classList.remove('slider_dragging');
-    
-          this._sliderElem.removeEventListener('pointermove', pointermove);
-          
-          this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
-            detail: this._value,
-            bubbles: true
-          }));
-    
-          this._sliderElem.onpointerup = null;
+    // высчитываем на сколько процентов должен быть закрашен слайдер
+    // закрашиваем, смещаем бегунок
+    let leftRelative = x / this._sliderWidth;
 
-          setTimeout(() => {
-            this._isMoving = false;
-          }, 0);
-        }
-      };
-
-      this._sliderElem.addEventListener('pointermove', pointermove);
+    if (leftRelative < 0) {
+      leftRelative = 0;
     }
 
-    this._sliderElem.addEventListener('click', event => this.sliderClick(event));
+    if (leftRelative > 1) {
+      leftRelative = 0;
+    }
+
+    let shiftPercents = leftRelative * 100;
+
+    this._thumb.style.left = `${shiftPercents}%`;
+    this._progress.style.width = `${shiftPercents}%`;
+
+    this._sliderElem.addEventListener('pointerup', this.sliderDragStop);
+  }
+
+  sliderDragStop = () => {
+    this._sliderElem.classList.remove('slider_dragging');
+
+    this._sliderElem.dispatchEvent(new CustomEvent('slider-change', {
+      detail: this._value,
+      bubbles: true
+    }));
+
+    this._sliderElem.removeEventListener('pointermove', this.sliderDragMove);
+    this._sliderElem.removeEventListener('pointerup', this.sliderDragStop);
+
+    setTimeout(() => {
+      this._isMoving = false;
+    }, 0);
   }
 
   renderSlider(steps, value) {
