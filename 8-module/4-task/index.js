@@ -128,12 +128,12 @@ export default class Cart {
     this.cartModal.setBody(cartModalBody);
     this.cartModal.open();
 
-    document.addEventListener('click', this.changeAmount);
+    cartModalBody.addEventListener('click', this.changeAmount);
     let cartForm = cartModalBody.querySelector('.cart-form');
     cartForm.addEventListener('submit', this.onSubmit);
   }
 
-  changeAmount = () => {
+  changeAmount = (event) => {
     let button = event.target.closest('.cart-counter__button');
     if (!button) {
       return;
@@ -172,7 +172,7 @@ export default class Cart {
       let infoPrice = modalBody.querySelector(`.cart-buttons__info-price`);
 
       productCount.innerHTML = cartItem.count;
-      productPrice.innerHTML = `€${cartItem.product.price.toFixed(2)}`;
+      productPrice.innerHTML = `€${(cartItem.product.price * cartItem.count).toFixed(2)}`;
       infoPrice.innerHTML = `€${this.getTotalPrice().toFixed(2)}`;
     }
   }
