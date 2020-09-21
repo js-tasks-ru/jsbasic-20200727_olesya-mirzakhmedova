@@ -25,13 +25,17 @@ export default class Main {
 
     this.vegeterianCheckbox.addEventListener('change', event => {
       this.productsGrid.updateFilter({
-        noNuts: this.vegeterianCheckbox.checked
+        vegeterianOnly: this.vegeterianCheckbox.checked
       });
     });
   }
 
   async render() {
-    return new Promise(() => {
+    let response = await fetch('./products.json');
+
+    if (response.ok) {
+      this.products = await response.json();
+      
       this.carousel = new Carousel(this.slides);
       let carouselHolder = document.querySelector('[data-carousel-holder]');
       carouselHolder.append(this.carousel.elem);
@@ -53,23 +57,16 @@ export default class Main {
 
       this.cart = new Cart(this.cartIcon);
 
-      fetch('./products.json')
-      .then(response => {
-        return response.json();
-      })
-      .then(products => {
-        this.products = products;
-        this.productsGrid = new ProductsGrid(this.products);
-        let productsGridHolder = document.querySelector('[data-products-grid-holder]');
-        productsGridHolder.innerHTML = '';
-        productsGridHolder.append(this.productsGrid.elem);
+      this.productsGrid = new ProductsGrid(this.products);
+      let productsGridHolder = document.querySelector('[data-products-grid-holder]');
+      productsGridHolder.innerHTML = '';
+      productsGridHolder.append(this.productsGrid.elem);
 
-        this.productsGrid.updateFilter({
-          noNuts: document.getElementById('nuts-checkbox').checked,
-          vegeterianOnly: document.getElementById('vegeterian-checkbox').checked,
-          maxSpiciness: this.stepSlider.value,
-          category: this.ribbonMenu.value
-        });
+      this.productsGrid.updateFilter({
+        noNuts: document.getElementById('nuts-checkbox').checked,
+        vegeterianOnly: document.getElementById('vegeterian-checkbox').checked,
+        maxSpiciness: this.stepSlider.value,
+        category: this.ribbonMenu.value
       });
 
       document.body.addEventListener('product-add', event => {
@@ -88,6 +85,8 @@ export default class Main {
           category: event.detail
         });
       });
-    });
+
+      return response;
+    }
   }
 }
