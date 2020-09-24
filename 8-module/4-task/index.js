@@ -13,6 +13,10 @@ export default class Cart {
   }
 
   addProduct(product) {
+    if (!product) {
+      return;
+    }
+    
     let cartItem = this.cartItems.find(item => item.product.id === product.id);
     
     if (cartItem) {
